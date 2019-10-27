@@ -1,0 +1,539 @@
+Flask es un framework minimalista escrito en Python que permite crear 
+aplicaciones web rápidamente y con un mínimo número de líneas de código.
+
+Creamos una carpeta con el noombre productos-restapi
+
+Dentro de esa carpeta creamos dos archivos
+
+*app.py será la aplicacion de python 
+
+*products.py simular los datos de la restapi 
+
+Generalmente cuando se trabajan con API se manejan base de datos 
+(este ejemplo obvia la base de datos para explicar como funciona la apirest)
+
+
+products.py:
+********************************************************************
+products = [
+    {"name": "laptop", "price": 800, "quantity": 4},
+    {"name": "mouse", "price": 40, "quantity": 10},
+    {"name": "monitor", "price": 400, "quantity": 3}
+]
+********************************************************************
+
+Para instalar flaks usamos pip (instalador de paquete)
+
+app.py: 
+********************************************************************
+$ pip install flask
+********************************************************************
+
+Una vez instalado el paquete importamos flask
+
+app.py: 
+********************************************************************
+from flask import Flask
+********************************************************************
+
+Lo ejecutamos de la siguiente manera
+app seria la aplicacion del servidor 
+Para inicializarlo hacemos una condicional 
+
+app.py: 
+********************************************************************
+from flask import Flask
+
+app = Flask(__name__)
+
+if __name__ == '__main__':
+    app.run(debug=True, port=4000)
+********************************************************************
+
+Ejecutamos 
+
+app.py: 
+********************************************************************
+$ python app.py
+********************************************************************
+ El not found es un mensaje del servidor
+No hay ruta creadas y nos envia ese mensaje 
+
+Empezamos a integrar datos a travez de una ruta y la probamos 
+app.py: 
+********************************************************************
+from flask import Flask
+
+app = Flask(__name__)
+
+from products import products
+
+@app.route('/ping')
+def ping():
+    return 'Pong!'
+
+if __name__ == '__main__':
+    app.run(debug=True, port=4000)
+********************************************************************
+
+Ejecutamos: http://localhost:4000/ping
+
+Cuando usamos restapi no queremos que nos devuelva un string, generalmente
+se trabaja con json, formato aplicado a aplicaciones moviles y web
+
+usamos jsonify que convierte un objeto a json
+
+app.py: 
+********************************************************************
+from flask import Flask, jsonify
+
+app = Flask(__name__)
+
+from products import products
+
+@app.route('/ping')
+def ping():
+    return jsonify({"message": 'Pong!'})
+
+if __name__ == '__main__':
+    app.run(debug=True, port=4000)
+********************************************************************
+
+las rutas nos permite especificar los metodos a http
+
+Cremaos una ruta y especificamos el metodo GET, no son necesarios ya que
+por defecto lo establece.
+
+app.py: 
+********************************************************************
+from flask import Flask, jsonify
+
+app = Flask(__name__)
+
+from products import products
+
+@app.route('/ping', methods=['GET'])
+def ping():
+    return jsonify({"message": 'Pong!'})
+
+@app.route('/products', methods=['GET'])
+
+if __name__ == '__main__':
+    app.run(debug=True, port=4000)
+********************************************************************
+Cuando se usan los otros metodos?
+
+POST para guardar datos 
+PUT actualizar datos 
+DELETE eliminar datos
+
+Aplicamos el jsonify a products
+
+app.py: 
+********************************************************************
+from flask import Flask, jsonify
+
+app = Flask(__name__)
+
+from products import products
+
+@app.route('/ping')
+def ping():
+    return jsonify({"message": 'Pong!'})
+
+@app.route('/products')
+def getProducts():
+    return jsonify({"products": products, "message": "Prodduct's List"})
+
+if __name__ == '__main__':
+    app.run(debug=True, port=4000)
+********************************************************************
+
+El servidor me responde con una lista 
+
+Si queremos obtener un dato especifico aplicamos otro metodo
+
+app.py: 
+********************************************************************
+from flask import Flask, jsonify
+
+app = Flask(__name__)
+
+from products import products
+
+@app.route('/ping')
+def ping():
+    return jsonify({"message": 'Pong!'})
+
+@app.route('/products')
+def getProducts():
+    return jsonify({"products": products, "message": "Prodduct's List"})
+
+@app.route('/products/<string:product_name>')
+def getProduct(product_name):
+    print(product_name)
+    return 'received'
+
+if __name__ == '__main__':
+    app.run(debug=True, port=4000)
+********************************************************************
+
+el terminal obtiene los datos que está dando el cliente colocando en el enlace
+y dando el resultado en la terminal
+
+/laptop
+/mouse
+/monitor
+
+Usamos un buble for para obtener un solo producto dentro en un arreglo
+
+Le incorporamos una condicional
+
+Lo que hace es recorrer la linea de productos, por cada producto lo compara y
+si coincide lo retorna
+
+app.py: 
+********************************************************************
+from flask import Flask, jsonify
+
+app = Flask(__name__)
+
+from products import products
+
+@app.route('/ping')
+def ping():
+    return jsonify({"message": 'Pong!'})
+
+@app.route('/products')
+def getProducts():
+    return jsonify({"products": products, "message": "Prodduct's List"})
+
+@app.route('/products/<string:product_name>')
+def getProduct(product_name):
+    productsFound = [product for product in products if product['name'] == product_name]
+    return jsonify({"product": productsFound[0]})
+
+if __name__ == '__main__':
+    app.run(debug=True, port=4000)
+********************************************************************
+
+Validamos la busqueda
+
+Si no encuentra el producto devuelve un mensaje
+
+app.py:
+********************************************************************
+from flask import Flask, jsonify
+
+app = Flask(__name__)
+
+from products import products
+
+@app.route('/ping')
+def ping():
+    return jsonify({"message": 'Pong!'})
+
+@app.route('/products')
+def getProducts():
+    return jsonify({"products": products, "message": "Prodduct's List"})
+
+@app.route('/products/<string:product_name>')
+def getProduct(product_name):
+    productsFound = [product for product in products if product['name'] == product_name]
+    if (len(productsFound) > 0):
+        return jsonify({"product": productsFound[0]})
+    return jsonify({"message": "Product not found"})
+
+if __name__ == '__main__':
+    app.run(debug=True, port=4000)
+********************************************************************
+
+Para crear datos necesitamos hacer una aplicacion, hacer un formulario
+
+Insomnia, nos permite enviar y guardar datos dentro de una rest api
+
+Lo instalamos 
+
+Creamos una peticion en insomnia - New Request con el nombre:
+"products rest api"
+
+En el enlace colocamos "http://localhost:4000/products/monitor"
+Y enviamos para hacer prueba y que nos devuelva los datos
+
+Ahora creamos otras rutas con el metodo post, put, delete
+
+Esta ruta sirve para crear datos con el metodo POST y lo probamos
+
+app.py:
+********************************************************************
+from flask import Flask, jsonify
+
+app = Flask(__name__)
+
+from products import products
+
+@app.route('/ping')
+def ping():
+    return jsonify({"message": 'Pong!'})
+
+@app.route('/products')
+def getProducts():
+    return jsonify({"products": products, "message": "Prodduct's List"})
+
+@app.route('/products/<string:product_name>')
+def getProduct(product_name):
+    productsFound = [product for product in products if product['name'] == product_name]
+    if (len(productsFound) > 0):
+        return jsonify({"product": productsFound[0]})
+    return jsonify({"message": "Product not found"})
+
+@app.route('/products', methods=['POST'])
+def addProduct():
+    return 'received'
+
+if __name__ == '__main__':
+    app.run(debug=True, port=4000)
+********************************************************************
+
+Colocamos en insomnia "http://localhost:4000/products" con POST 
+y recibimos el mensaje
+
+En body elegimos el tipo de texto: JSON, tipo de dato que queremos 
+enviar al servidor
+
+En header se ve como funciona internamente
+
+Escribimos para probar:
+
+insomnia json:
+********************************************************************
+{
+	"hello": "hello world"
+}
+********************************************************************
+
+Lo ideal es recibir el mensaje por consola y añadimos otor objeto 
+llamado 'request' que funciona para proporcionar los datos que estan
+ enviando a travez de peticiones http
+
+Añadimos un print
+
+app.py
+********************************************************************
+from flask import Flask, jsonify, request
+
+app = Flask(__name__)
+
+from products import products
+
+@app.route('/ping')
+def ping():
+    return jsonify({"message": 'Pong!'})
+
+@app.route('/products')
+def getProducts():
+    return jsonify({"products": products, "message": "Prodduct's List"})
+
+@app.route('/products/<string:product_name>')
+def getProduct(product_name):
+    productsFound = [product for product in products if product['name'] == product_name]
+    if (len(productsFound) > 0):
+        return jsonify({"product": productsFound[0]})
+    return jsonify({"message": "Product not found"})
+
+@app.route('/products', methods=['POST'])
+def addProduct():
+    print(request.json)
+    return 'received'
+
+if __name__ == '__main__':
+    app.run(debug=True, port=4000)
+********************************************************************
+
+Cuando ya confirmamos que recibimos los datos, los guardamos en una
+variable para luego agregarlo a la lista de otros productos
+
+app.py
+********************************************************************
+from flask import Flask, jsonify, request
+
+app = Flask(__name__)
+
+from products import products
+
+@app.route('/ping')
+def ping():
+    return jsonify({"message": 'Pong!'})
+
+@app.route('/products')
+def getProducts():
+    return jsonify({"products": products, "message": "Prodduct's List"})
+
+@app.route('/products/<string:product_name>')
+def getProduct(product_name):
+    productsFound = [product for product in products if product['name'] == product_name]
+    if (len(productsFound) > 0):
+        return jsonify({"product": productsFound[0]})
+    return jsonify({"message": "Product not found"})
+
+@app.route('/products', methods=['POST'])
+def addProduct():
+    new_product = {
+        "name": request.json['name'],
+        "price": request.json['price'],
+        "quantity": request.json['quantity']
+        }
+    products.append(new_product)
+    return jsonify({"message": "Product Added Succesfully", "products": products})
+
+if __name__ == '__main__':
+    app.run(debug=True, port=4000)
+********************************************************************
+
+Agregamos el nuevo producto y enviamos el mensaje
+
+insomnia json:
+********************************************************************
+{
+	"name": "mouse gaming",
+	"price": 45.99,
+	"quantity": 2
+}
+********************************************************************
+
+Y ahora revela la lista con los nuevos productos
+
+Para actualizar los datos creamos otra ruta con el metodo PUT
+
+app.py
+********************************************************************
+from flask import Flask, jsonify, request
+
+app = Flask(__name__)
+
+from products import products
+
+@app.route('/ping')
+def ping():
+    return jsonify({"message": 'Pong!'})
+
+@app.route('/products')
+def getProducts():
+    return jsonify({"products": products, "message": "Prodduct's List"})
+
+@app.route('/products/<string:product_name>')
+def getProduct(product_name):
+    productsFound = [product for product in products if product['name'] == product_name]
+    if (len(productsFound) > 0):
+        return jsonify({"product": productsFound[0]})
+    return jsonify({"message": "Product not found"})
+
+@app.route('/products', methods=['POST'])
+def addProduct():
+    new_product = {
+        "name": request.json['name'],
+        "price": request.json['price'],
+        "quantity": request.json['quantity']
+        }
+    products.append(new_product)
+    return jsonify({"message": "Product Added Succesfully", "products": products})
+
+@app.route('/products/<string:product_name>', methods=['PUT'])
+def editProduct(product_name):
+    productFound = [product for product in products if product['name'] == product_name]
+    if (len(productFound) > 0 ):
+        productFound[0]['name'] = request.json['name']
+        productFound[0]['price'] = request.json['price']
+        productFound[0]['quantity'] = request.json['quantity']
+        return jsonify({
+            "message": "Product Updated",
+            "product": productFound[0]
+        })
+    return jsonify({"message": "Product not found"})
+
+if __name__ == '__main__':
+    app.run(debug=True, port=4000)
+********************************************************************
+
+Hacemos una peticion PUT en "http://localhost:4000/products/monitor"
+enviamos 
+
+insomnia json:
+********************************************************************
+{
+	"name": "TV",
+	"price": 600,
+	"quantity": 7
+}
+********************************************************************
+
+Luego usando GET a "http://localhost:4000/products"
+Saldran los datos actualizados 
+
+Ahora añadimos la ruta para eliminiar, el metodo DELETE
+
+app.py
+********************************************************************
+from flask import Flask, jsonify, request
+
+app = Flask(__name__)
+
+from products import products
+
+@app.route('/ping')
+def ping():
+    return jsonify({"message": 'Pong!'})
+
+@app.route('/products')
+def getProducts():
+    return jsonify({"products": products, "message": "Prodduct's List"})
+
+@app.route('/products/<string:product_name>')
+def getProduct(product_name):
+    productsFound = [product for product in products if product['name'] == product_name]
+    if (len(productsFound) > 0):
+        return jsonify({"product": productsFound[0]})
+    return jsonify({"message": "Product not found"})
+
+@app.route('/products', methods=['POST'])
+def addProduct():
+    new_product = {
+        "name": request.json['name'],
+        "price": request.json['price'],
+        "quantity": request.json['quantity']
+        }
+    products.append(new_product)
+    return jsonify({"message": "Product Added Succesfully", "products": products})
+
+@app.route('/products/<string:product_name>', methods=['PUT'])
+def editProduct(product_name):
+    productFound = [product for product in products if product['name'] == product_name]
+    if (len(productFound) > 0 ):
+        productFound[0]['name'] = request.json['name']
+        productFound[0]['price'] = request.json['price']
+        productFound[0]['quantity'] = request.json['quantity']
+        return jsonify({
+            "message": "Product Updated",
+            "product": productFound[0]
+        })
+    return jsonify({"message": "Product not found"})
+
+@app.route('/products/<string:product_name>', methods=['DELETE'])
+def deleteProduct(product_name):
+    productsFound = [product for product in products if product['name'] == product_name]
+    if len(productsFound) > 0:
+        products.remove(productsFound[0])
+        return jsonify({
+            "message": "Product Deleted",
+            "products": products
+        })
+    return jsonify({"message": "Product Not Found"})
+
+if __name__ == '__main__':
+    app.run(debug=True, port=4000)
+********************************************************************
+
+Elegimos DELETE en insomnia 
+bajo "http://localhost:4000/products/laptop"
+
+Y se elimina Laptop de la lista 
